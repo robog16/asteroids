@@ -1,44 +1,52 @@
+import sys
 import pygame
 from constants import *
 from player import Player
+from asteroid import Asteroid
+from asteroidfield import AsteroidField
+
 
 def main():
-    # Keep your existing print statements
-    print('Starting Asteroids!')
-    print(f'Screen width: {SCREEN_WIDTH}')
-    print(f'Screen height: {SCREEN_HEIGHT}')
-
-    # Initialize pygame
     pygame.init()
-    
-    time_clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    clock = pygame.time.Clock()
+
+    updatable = pygame.sprite.Group()
+    drawable = pygame.sprite.Group()
+    asteroids = pygame.sprite.Group()
+
+    Asteroid.containers = (asteroids, updatable, drawable)
+    AsteroidField.containers = updatable
+    asteroid_field = AsteroidField()
+
+    Player.containers = (updatable, drawable)
+
+    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+
     dt = 0
 
-    # Create the game window
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-    # In your main function, instantiate a Player object
-    player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
-    
-    # Your game loop
-    running = True
-    while running:
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
-        
-        # Fill the screen with black
-        screen.fill('black')
-        player.update(dt)
-        
-        # re-render the player on the screen each frame
-        player.draw(screen)
+                return
 
-        # Update the display to show the changes
+        updatable.update(dt)
+
+        for asteroid in asteroids:
+            if asteroid.collides_with(player):
+                print("Game over!")
+                sys.exit()
+
+        screen.fill("black")
+
+        for obj in drawable:
+            obj.draw(screen)
+
         pygame.display.flip()
 
-        # At the end of each loop iteration, call tick on the time_clock object
-        dt = time_clock.tick(60)/1000
+        # limit the framerate to 60 FPS
+        dt = clock.tick(60) / 1000
+
 
 if __name__ == "__main__":
     main()
